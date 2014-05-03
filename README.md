@@ -16,20 +16,22 @@ Usage
 Assuming you've installed the module somewhere in your module path, just import the module in your profile, e.g.:
 ```powershell
 Import-Module CDPath
-# if you've imported PSCX and want to use cd as an alias for Set-CDPathLocation, you must first remove the alias set by PSCX
+# if you've imported PSCX and want to use cd as an alias for Set-CDPathLocation, 
+# you must first remove the alias set by PSCX
 Remove-Item alias:cd
 Set-Alias cd Set-CDPathLocation
 ```
 
 To setup the CDPath, i.e. the parent directories of the directories you most often navigate to, call
 ```powershell
-# a user who has github projects and a directory where corporate source code is stored may set up the path like this 
+# a user who has github projects and a directory where corporate source code is stored
+# may set up the path like this 
 Set-CDPath -Path ~\Documents\GitHub,d:\corpsrc,~\documents
 ```
 The CDPath is persisted at ~/Documents/WindowsPowerShell/cdpath.txt
 
 Imagine the following directory structure
-
+```
 ~/Documents/
 	GitHub
 		PSReadLine
@@ -43,20 +45,20 @@ D:\CorpSrc
 	ToolingApi
 	Frontend
 	Backend
-
+```
 Navigation can then be done like this:
 
 ```powershell
-# goto PSReadline
-cd psr
+# go to PSReadline
+PS> cd psr
 
-# goto ~/Documents/WindowsPowerShell/Modules
+# go to ~/Documents/WindowsPowerShell/Modules
 cd win mod
 
-# goto ToolingApi
+# go to ToolingApi
 cd too
 
-#goto TabExpansion++
+# go to TabExpansion++
 cd tab
 # go up three levels
 cd ....
