@@ -52,13 +52,13 @@ Navigation can then be done like this:
 # go to PSReadline
 PS> cd psr
 
-# go to ~/Documents/WindowsPowerShell/Modules
+ go to ~\Documents\WindowsPowerShell\Modules
 cd win mod
 
-# go to ToolingApi
+# go to D:\CorpSrc\ToolingApi
 cd too
 
-# go to TabExpansion++
+# go to ~\Documents\GitHub\TabExpansion++
 cd tab
 # go up three levels
 cd ....
