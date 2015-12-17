@@ -44,7 +44,7 @@ function Set-CDPathLocation
     [switch] $Exact
     )
 
-  $CurrentWorkingDir = $Pwd.Path      
+  $CurrentWorkingDir = $Pwd.ProviderPath      
   $NewPath = $null
   
   # If there are extra arguments, create a globbing expression

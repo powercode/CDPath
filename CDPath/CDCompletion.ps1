@@ -1,15 +1,13 @@
-﻿#
+﻿# If TabExpansionPlusPlus is installed, This is executed
+
+
+#
 # .SYNOPSIS
 #
 #     Description of added completer
 #
-function Complete-CDPath
+function CompleteCdPath
 {
-  [ArgumentCompleter(
-      Parameter = 'Path',
-      Command = ('Set-CDPathLocation'),
-      Description = 'Completes the cdPath parameter:  cd <pattern> <TAB>'
-  )]
   param($commandName, $parameterName, $wordToComplete, $commandAst, $fakeBoundParameter)
   $cdpath = @('.')
   if (Test-Path '~\documents\WindowsPowershell\cdpath.txt')
@@ -43,3 +41,4 @@ function Complete-CDPath
     }
   }
 }
+TabExpansionPlusPlus\Register-ArgumentCompleter -CommandName Set-CDPathLocation -ParameterName Path -ScriptBlock $function:CompleteCdPath
