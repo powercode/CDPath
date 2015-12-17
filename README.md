@@ -16,10 +16,6 @@ Usage
 Assuming you've installed the module somewhere in your module path, just import the module in your profile, e.g.:
 ```powershell
 Import-Module CDPath
-# if you've imported PSCX and want to use cd as an alias for Set-CDPathLocation, 
-# you must first remove the alias set by PSCX
-Remove-Item alias:cd
-Set-Alias cd Set-CDPathLocation
 ```
 
 To setup the CDPath, i.e. the parent directories of the directories you most often navigate to, call
@@ -35,7 +31,7 @@ Imagine the following directory structure
 ~/Documents/
 	GitHub
 		PSReadLine
-		TabExpansion++
+		TabExpansionPlusPlus
 		CDPath
 	WindowsPowerShell
 		ArgumentCompleters
@@ -58,7 +54,7 @@ cd win mod
 # go to D:\CorpSrc\ToolingApi
 cd too
 
-# go to ~\Documents\GitHub\TabExpansion++
+# go to ~\Documents\GitHub\TabExpansionPlusPlus
 cd tab
 # go up three levels
 cd ....
