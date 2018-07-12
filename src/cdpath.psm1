@@ -1,5 +1,5 @@
-using namespace System.Management.Automation
 using namespace System.Collections.Generic
+using namespace System.Management.Automation
 using namespace System.Management.Automation.Language
 
 Set-StrictMode -Version Latest
@@ -19,7 +19,12 @@ class CandidatePair : System.IComparable {
 
 	CandidatePair([string] $cdPath,	[string] $candidatePath, [int] $cdpathIndex, [CandidateKind] $kind) {
 		$this.CDPath = $cdPath.TrimEnd([IO.Path]::DirectorySeparatorChar).TrimEnd([IO.Path]::AltDirectorySeparatorChar)
-		$this.CandidatePath = $candidatePath.TrimEnd([IO.Path]::DirectorySeparatorChar).TrimEnd([IO.Path]::AltDirectorySeparatorChar)
+		$this.CandidatePath = if ($candidatePath.EndsWith(":\")) {
+				$candidatePath
+			}
+			else {
+				$candidatePath.TrimEnd([IO.Path]::DirectorySeparatorChar).TrimEnd([IO.Path]::AltDirectorySeparatorChar)
+			}
 		$this.CDPathIndex = $cdpathIndex
 		$this.Kind = $kind
 	}
@@ -85,6 +90,21 @@ class CDPathData {
 		$this.Update()
 	}
 
+	[string[]] GetExpandedCDPath(){
+		$provider=$null
+		$res = [List[string]]::new()
+		foreach($cdp in $this.CDPath){
+			$expanded = $global:ExecutionContext.InvokeCommand.ExpandString($cdp)
+			try{
+				$r =$global:ExecutionContext.SessionState.Path.GetResolvedProviderPathFromPSPath($expanded, [ref] $provider)
+				$res.AddRange($r)
+			}
+			catch{
+				Write-Error $_
+			}
+		}
+		return $res
+	}
 
 	[CandidatePair[]] GetCandidates([string] $path, [string[]] $remaining, [bool] $exact) {
 		$provider = $Null
@@ -95,16 +115,19 @@ class CDPathData {
 			'.' { $pwd.ProviderPath; break }
 			'..' { (Get-Item -LiteralPath '..').FullName; break }
 			'-' { $this.PreviousWorkingDir; break }
+			'~' { (Resolve-path -LiteralPath .).Provider.Home; break }
 			{$_ -match "^\.{3,}$"} {
 				# .'ing shortcuts for ... and ....
 				$Path = $path.Substring(1) -replace '\.', '..\'
 				(Get-Item -LiteralPath $Path).FullName
 				break
 			}
+			{[IO.Path]::IsPathRooted($_) -and !$remaining} {$path;break}
 		}
 		if ($c) {
 			return [CandidatePair]::new($null, $c, -1, [CandidateKind]::Global)
 		}
+
 
 		# If there are extra arguments, create a globbing expression
 		# so that cd a b c => cd a*\b*\c*
@@ -142,10 +165,10 @@ class CDPathData {
 			}
 		}
 
-		[string[]] $expandedCdPaths = @($pwd.ProviderPath ) + $this.CDPath.Foreach{$global:ExecutionContext.InvokeCommand.ExpandString($_)}
+		[string[]] $expandedCdPaths = @($pwd.ProviderPath ) + $this.GetExpandedCDPath()
 		for ($i = 0; $i -lt $expandedCdPaths.Length; $i++) {
 			$ecp = $expandedCdPaths[$i]
-			if (-not $ecp -or ![IO.Path]::IsPathRooted($ecp)){
+			if (-not $ecp -or ($ecp -notlike "\*" -and $ecp -notmatch '^\w+:' )){
 				continue
 			}
 			[string]$resolvedCDPath = $global:ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($ecp)
@@ -282,45 +305,6 @@ function Get-CDPathCandidate {
 
 }
 
-<#
-		.SYNOPSIS
-		Changing location using by resolving a pattern agains a set of paths
-		.DESCRIPTION
-		CDPath replaces the 'cd' alias with Set-CDPathLocation
-
-		Parts of paths can be specified with a space.
-
-		PS> cd win mo
-
-		will change directory to ~/documents/windowspowershell/modules
-
-
-		.EXAMPLE
-		Set-CDPathLocation ....
-
-		The example changes the current location to the parent three levels up.
-		.. (first parent)
-		... (second parent)
-		.... (third parent)
-
-		.EXAMPLE
-		Set-CDLocation 'C:\Program Files (X86)\Microsoft Visual Studio 12'
-		Set-CDLocation ~
-		# Go back to 'C:\Program Files (X86)\Microsoft Visual Studio 12'
-		Set-CDPathLocation -
-
-		.EXAMPLE
-
-		Get-CDPath
-		~/Documents/GitHub
-		~/Documents
-		~/corpsrc
-
-		# go to ~/documents/WindowsPowerShell/Modules/CDPath
-		Set-CDLocation win mod cdp
-
-
-#>
 function Set-CDPathLocation {
 	[Alias('cd')]
 	param(
@@ -347,24 +331,10 @@ function Set-CDPathLocation {
 	}
 }
 
-<#
-		.SYNOPSIS
-		Read the cdpath from ~/.cdpath
-
-		.DESCRIPTION
-		This is useful if you have modified your path file with an external editor
-#>
 function Update-Cdpath {
 	$script:Data.Update()
 }
 
-<#
-		.SYNOPSIS
-		Adds one or more paths to your cdpath
-
-		.DESCRIPTION
-		This is useful if you have modified your path file with an external editor
-#>
 function Add-CDPath {
 	param(
 		[string[]] $Path
@@ -396,10 +366,6 @@ function Set-CDPath {
 	$script:Data.SetPath($Path)
 }
 
-<#
-		.SYNOPSIS
-		Customizes the behavior of Set-CDPathLocation in CDPath
-#>
 function Set-CDPathOption {
 	param(
 		# Indicates if the the window title should be changed when changing location

@@ -4,15 +4,29 @@
 		{
 			"type": "PowerShell",
 			"request": "launch",
-			"name": "PowerShell Launch Current File",
-			"script": "${file}",
-			"args": [],
-			"cwd": "${file}"
+			"name": "PowerShell Launch tests in Temporary Console",
+			"script": "${workspaceRoot}/test/cdpath.tests.ps1",
+			"args": [
+				"-noprofile"
+			],
+			"cwd": "${workspaceRoot}",
+			"createTemporaryIntegratedConsole": true
 		},
 		{
 			"type": "PowerShell",
 			"request": "launch",
 			"name": "PowerShell Launch Current File in Temporary Console",
+			"script": "${file}",
+			"args": [
+				"-noprofile"
+			],
+			"cwd": "${file}",
+			"createTemporaryIntegratedConsole": true
+		},
+		{
+			"type": "PowerShell",
+			"request": "launch",
+			"name": "PowerShell Launch Current File",
 			"script": "${file}",
 			"args": [],
 			"cwd": "${file}",

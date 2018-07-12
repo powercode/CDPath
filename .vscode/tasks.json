@@ -26,50 +26,71 @@
 // ${fileExtname}: the current opened file's extension
 // ${cwd}: the current working directory of the spawned process
 {
-	"version": "2.0.0",
-	// Start PowerShell
-	"windows": {
-		"command": "c:\\windows\\sysnative\\windowspowershell\\v1.0\\PowerShell.exe",
-		"args": [
-			"-NoProfile",
-			"-ExecutionPolicy",
-			"Bypass"
-		]
-	},
-	"linux": {
-		"command": "/usr/bin/powershell",
-		"args": [
-			"-NoProfile"
-		]
-	},
-	"osx": {
-		"command": "/usr/local/bin/powershell",
-		"args": [
-			"-NoProfile"
-		]
-	},
-	// Associate with test task runner
-	"tasks": [
-		{
-			"taskName": "Test",
-			"suppressTaskName": true,
-			"group": {
-				"kind": "test",
-				"isDefault": true
-			},
-			"presentation": {
-				"echo": true,
-				"reveal": "always",
-				"focus": false,
-				"panel": "shared"
-			},
-			"args": [
-				"Set-Location ${workspaceRoot};",
-				"Remove-Module cdpath -ea:0 -force;Import-Module -force ./cdpath.psd1;",
-				"Write-Host 'Invoking Pester...'; Invoke-Pester -PesterOption @{IncludeVSCodeMarker=$true} ./cdpath.test.ps1;",
-				"Invoke-Command { Write-Host 'Completed Test task in task runner.' }"
-			],
-			"problemMatcher": "$pester"
-		}
-	]
+    "version": "2.0.0",
+    // Start PowerShell
+    "windows": {
+        "options": {
+            "shell": {
+                "executable": "C:\\Program Files\\PowerShell\\6.0.2\\pwsh.exe",
+                "args": [
+                    "-NoProfile",
+                    "-ExecutionPolicy",
+                    "Bypass",
+                    "-Command"
+                ]
+            }
+        },"echoCommand": true
+    },
+    "linux": {
+        "command": "/usr/bin/powershell",
+        "args": [
+            "-NoProfile"
+        ]
+    },
+    "osx": {
+        "command": "/usr/local/bin/powershell",
+        "args": [
+            "-NoProfile"
+        ]
+    },
+    // Associate with test task runner
+    "tasks": [
+        {
+            "label": "Clean",
+            "type": "shell",
+            "command": "Invoke-PSake build.ps1 -taskList Clean"
+        },
+        {
+            "label": "Build",
+            "type": "shell",
+            "command": "Invoke-PSake build.ps1 -taskList Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Install",
+            "type": "shell",
+            "command": "Invoke-PSake build.ps1 -taskList Install",
+            "problemMatcher": []
+        },
+        {
+            "label": "Publish",
+            "type": "shell",
+            "command": "Invoke-PSake build.ps1 -taskList Publish",
+            "problemMatcher": []
+        },
+        {
+            "label": "Test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "type": "shell",
+            "command": "Set-Location ${workspaceRoot}/test;Invoke-Pester -PesterOption @{IncludeVSCodeMarker=$true} ./cdpath.tests.ps1;",
+            "problemMatcher": "$pester"
+        }
+    ]
 }
